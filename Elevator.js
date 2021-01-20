@@ -1,28 +1,28 @@
 class Elevator{
     constructor(){
         //abrir e fechar, criando métodos
-        this.$elevator = $('.elevator')
+        this.$elevator = $('.elevator');
         this.floorQtd = 3;
     }
 
-    openDoor(){
-        if(this.isDoorOpen()){
+    openDoors(){
+        if(this.isDoorsOpen()){
             return true
         }else {
             this.$elevator.find('.door').removeClass('open')
         }
     }
 
-    closeDoor(){
-        if(this.isDoorOpen()){
+    closeDoors(){
+        if(this.isDoorsOpen()){
             this.$elevator.find('.door').removeClass('open')
         }else {
             return true;
         }
-        
+
     }
 
-    isDoorOpen(){
+    isDoorsOpen(){
         let doors = this.$elevator.find('.door')
         //if ternario
         return (doors.hasClass('open'))
@@ -36,6 +36,9 @@ class Elevator{
     }
     //mudando de andar
     goToFloor(number){
+
+        this.closeDoor();
+
         this.removeFloorClasses()
         let currentfloor = this.$elevator.data('floor')
         let diff =number - currentfloor;
@@ -45,6 +48,8 @@ class Elevator{
         this.$elevator.addClass(`floor${number}`)
         this.$elevator.data('floor', number)
         this.$elevator.css('-webkit-transition-duration', `${time}s`)
+
+        this.closeDoor();
     }
 
     removeFloorClasses(){
