@@ -37,8 +37,14 @@ class Elevator{
     //mudando de andar
     goToFloor(number){
         this.removeFloorClasses()
+        let currentfloor = this.$elevator.data('floor')
+        let diff =number - currentfloor;
+
+        let time = diff * 2;
+
         this.$elevator.addClass(`floor${number}`)
         this.$elevator.data('floor', number)
+        this.$elevator.css('-webkit-transition-duration', `${time}s`)
     }
 
     removeFloorClasses(){
