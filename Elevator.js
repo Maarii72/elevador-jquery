@@ -2,6 +2,7 @@ class Elevator{
     constructor(){
         //abrir e fechar, criando métodos
         this.$elevator = $('.elevator')
+        this.floorQtd = 3;
     }
 
     openDoor(){
@@ -32,5 +33,17 @@ class Elevator{
             return false;
         }
         */
+    }
+    //mudando de andar
+    goToFloor(number){
+        this.removeFloorClasses()
+        this.$elevator.addClass(`floor${number}`)
+        this.$elevator.data('floor', number)
+    }
+
+    removeFloorClasses(){
+        for(let i = 1; i <= this.floorQtd; i++){
+            this.$elevator.removeClass(`floor${i}`)
+        }
     }
 }
