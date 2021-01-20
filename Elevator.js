@@ -1,60 +1,212 @@
-class Elevator{
-    constructor(){
-        //abrir e fechar, criando métodos
+class Elevator {
+
+    constructor() {
+
         this.$elevator = $('.elevator');
         this.floorQtd = 3;
+        this.isMovement = false;
+        this.queue = [];
+        this.initCamera();
+        this.initEvents();
+
     }
 
-    openDoors(){
-        if(this.isDoorsOpen()){
-            return true
-        }else {
-            this.$elevator.find('.door').removeClass('open')
+    initCamera() {
+
+        navigator.mediaDevices.getUserMedia({
+            video: true
+        }).then(stream => {
+
+            let video = this.$elevator.find('.camera')[0];
+
+            video.srcObject = stream;
+
+        }).catch(err => {
+
+            console.error(err);
+
+        })
+
+    }
+
+    initEvents() {
+
+        $('.buttons .btn').on('click', e => {
+
+            let btn = e.target;
+
+            $(btn).addClass('floor-selected');
+
+            let floor = $(btn).data('floor');
+
+            this.goToFloor(floor);
+
+        });
+
+    }
+
+    openDoor() {
+
+        return new Promise((resolve, reject) => {
+
+            if (this.isDoorsOpen()) {
+
+                this.transitionEnd(() => {
+
+                    resolve();
+
+                });
+    
+            } else {
+
+                this.$elevator.find('.door').addClass('open');
+                
+                this.transitionEnd(() => {
+
+                    resolve();
+
+                });
+    
+            }
+
+        });
+
+    }
+
+    closeDoor() {
+
+        return new Promise((resolve, reject) => {
+
+            if (this.isDoorsOpen()) {
+
+                this.$elevator.find('.door').removeClass('open');
+                
+                setTimeout(() => {
+
+                    resolve();
+
+                }, 1500)                    
+    
+            } else {
+    
+                resolve();
+    
+            }
+
+        });
+
+    }
+
+    isDoorsOpen() {
+
+        let doors = this.$elevator.find('.door');
+
+        return (doors.hasClass('open'));
+
+    }
+
+    transitionEnd(callback) {
+
+        this.$elevator.on('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend', () => {
+
+            callback();
+
+        });
+
+    }
+
+    goToFloor(number) {
+
+        if (!this.isMovement) {
+
+            this.isMovement = true;
+
+            this.closeDoor().then(() => {
+
+                new Promise((resolve, reject) => {
+
+                    let currentFloor = this.$elevator.data('floor');
+                    
+                    if (number !== currentFloor) {
+                    
+                        this.removeFloorClasses();
+                        
+                        let diff = number - currentFloor;
+
+                        let time = diff * 2;
+
+                        this.$elevator.addClass(`floor${number}`);
+
+                        this.$elevator.data('floor', number);
+
+                        this.$elevator.css('-webkit-transition-duration', `${time}s`);
+
+                        this.transitionEnd(() => {
+
+                            resolve();
+
+                        });
+
+                    } else {
+                        resolve();
+                    }
+
+                }).then(() => {
+
+                    this.setDisplay(number);
+                    
+                    this.openDoor().then(() => {
+
+                        $(`.buttons .button${number}`).removeClass('floor-selected');
+
+                        this.isMovement = false;
+
+                        setTimeout(() => {
+
+                            this.closeDoor();
+
+                        }, 3000);
+
+                        setTimeout(() => {
+
+                            if (this.queue.length) {
+
+                                let newFloor = this.queue.shift();
+
+                                this.goToFloor(newFloor);
+
+                            }
+
+                        }, 2000);
+
+                    });
+
+                });
+
+            });
+
+        } else {
+
+            this.queue.push(number);
+
         }
+
     }
 
-    closeDoors(){
-        if(this.isDoorsOpen()){
-            this.$elevator.find('.door').removeClass('open')
-        }else {
-            return true;
+    setDisplay(floor) {
+
+        this.$elevator.find('.display').text(floor);
+
+    }
+
+    removeFloorClasses() {
+
+        for(let i = 1; i <= this.floorQtd; i++) {
+
+            this.$elevator.removeClass(`floor${i}`);
+
         }
 
     }
 
-    isDoorsOpen(){
-        let doors = this.$elevator.find('.door')
-        //if ternario
-        return (doors.hasClass('open'))
-        /*
-        if(doors.hasClass('open')){
-            return true;
-        }else{
-            return false;
-        }
-        */
-    }
-    //mudando de andar
-    goToFloor(number){
-
-        this.closeDoor();
-
-        this.removeFloorClasses()
-        let currentfloor = this.$elevator.data('floor')
-        let diff =number - currentfloor;
-
-        let time = diff * 2;
-
-        this.$elevator.addClass(`floor${number}`)
-        this.$elevator.data('floor', number)
-        this.$elevator.css('-webkit-transition-duration', `${time}s`)
-
-        this.closeDoor();
-    }
-
-    removeFloorClasses(){
-        for(let i = 1; i <= this.floorQtd; i++){
-            this.$elevator.removeClass(`floor${i}`)
-        }
-    }
 }
