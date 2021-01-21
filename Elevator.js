@@ -45,7 +45,7 @@ class Elevator {
 
     }
 
-    openDoors() {
+    openDoor() {
 
         return new Promise((resolve, reject) => {
 
